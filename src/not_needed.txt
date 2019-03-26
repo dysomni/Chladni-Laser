@@ -1,0 +1,172 @@
+# This is just spare code that I didn't want to delete but wanted to remove so I could clean up my files.
+
+
+def test():
+    p = pyaudio.PyAudio()
+
+    volume = 0.5  # range [0.0, 1.0]
+    fs = 44100  # sampling rate, Hz, must be integer
+    duration = 0.5  # in seconds, may be float
+
+    stream = p.open(format=pyaudio.paFloat32,
+                    channels=1,
+                    rate=fs,
+                    output=True)
+    for i in range(20):
+        f = 200.0 + i * 50  # sine frequency, Hz, may be float
+
+        # generate samples, note conversion to float32 array
+        samples = (np.sin(2 * np.pi * np.arange(fs * duration) * f / fs)).astype(np.float32)
+        # for j in range(1000):
+        #     s = samples.size
+        #     if np.sign(samples[s-j-1]) != np.sign(samples[s-j-2]):
+        #         samples = samples[0:(s-j)]
+        #         samples[s-j-1] = 0
+        #         break
+
+        fade = 200.
+
+        fade_in = np.arange(0., 1., 1 / fade)
+        fade_out = np.arange(1., 0., 1 / -fade)
+
+        samples[:int(fade)] = np.multiply(samples[:int(fade)], fade_in)
+        samples[-int(fade):] = np.multiply(samples[-int(fade):], fade_out)
+        # samples[samples <= 1] = 1
+
+        # for paFloat32 sample values must be in range [-1.0, 1.0]
+
+        # play. May repeat with different volume values (if done interactively)
+        stream.write(volume * samples)
+
+        print("hello")
+
+        time.sleep(1)
+    stream.stop_stream()
+    print("hello")
+
+    stream.close()
+
+    p.terminate()
+
+
+# def keypointDemo():
+#     MIN_MATCHES = 10
+#     cap = cv2.imread('../images/test/scene.jpg', 0)
+#     model = cv2.imread('../images/test/model.jpg', 0)
+#     # ORB keypoint detector
+#     orb = cv2.ORB_create()
+#     # create brute force  matcher object
+#     bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+#     # Compute model keypoints and its descriptors
+#     kp_model, des_model = orb.detectAndCompute(model, None)
+#     # Compute scene keypoints and its descriptors
+#     kp_frame, des_frame = orb.detectAndCompute(cap, None)
+#     # Match frame descriptors with model descriptors
+#     matches = bf.match(des_model, des_frame)
+#     # Sort them in the order of their distance
+#     matches = sorted(matches, key=lambda x: x.distance)
+#
+#     if len(matches) > MIN_MATCHES:
+#         # draw first 15 matches.
+#         cap = cv2.drawMatches(model, kp_model, cap, kp_frame,
+#                               matches[:MIN_MATCHES], 0, flags=2)
+#         # show result
+#         cv2.imshow('frame', cap)
+#         cv2.waitKey(0)
+#     else:
+#         print("Not enough matches have been found - %d/%d" % (len(matches), MIN_MATCHES))
+
+
+
+
+
+
+def detectMarkers():
+
+    while(inputVid1.grab()):
+        # take_pic = False
+        ret, img = inputVid1.read()
+        # img2 = copy.deepcopy(img)
+        # img3 = copy.deepcopy(img)
+        grey = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        #
+        corners, ids, rejected = aruco.detectMarkers(grey, markerDictionary, parameters=parameters)
+        color = aruco.drawDetectedMarkers(img, corners)
+        # color = cv2.cvtColor(color, cv2.COLOR_BGR2RGB)
+        #
+        if ids is None or ids.size != 4:
+            color2 = cv2.resize(color, (500,275), fx=0, fy=0)
+            numpy_vertical = np.vstack((color2, lastReading))
+            cv2.imshow('frame', numpy_vertical)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+            continue
+
+        finalCorners = []
+        try:
+            finalCorners = getMarkerCorners(corners, ids)
+            for i in range(4):
+                color = cv2.line(color, finalCorners[i], finalCorners[(i+1)%4], (255, 0, 0), 3)
+        except IndexError:
+            print("index error")
+        except TypeError:
+            print("type error")
+
+        src_pts = np.array(finalCorners, dtype=np.float32)
+        dst_pts = np.array([[0, 0], [500, 0], [500, 500], [0, 500]], dtype=np.float32)
+        M = cv2.getPerspectiveTransform(src_pts, dst_pts)
+        warp = cv2.warpPerspective(hsv, M, (500, 500))
+        lower_green = np.array([color_low, low_threshold, low_threshold])
+        upper_green = np.array([color_high, 255, 255])
+
+        mask = cv2.inRange(warp, lower_green, upper_green)
+        mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
+        warp = cv2.cvtColor(warp, cv2.COLOR_HSV2BGR)
+
+        mask2 = cv2.resize(mask, (250, 250), fx=0, fy=0)
+        warp2 = cv2.resize(warp, (250, 250), fx=0, fy=0)
+        color2 = cv2.resize(color, (500,275), fx=0, fy=0)
+
+        numpy_horizontal = np.hstack((warp2, mask2))
+
+        if contMonitor:
+            lastReading = numpy_horizontal
+            numpy_vertical = np.vstack((color2, numpy_horizontal))
+        else:
+            if take_pic:
+                lastReading = numpy_horizontal
+                cv2.setTrackbarPos('take', 'parameters', 0)
+                take_pic = False
+                file = open('../images/saved/' + FOLDER_NAME + '/index.txt','r')
+                ind = int(file.read())
+                file.close()
+                ind = ind+1
+                cv2.imwrite('../images/saved/' + v.FOLDER_NAME + '/original'+str(ind)+'.jpg', img)
+                cv2.imwrite('../images/saved/' + v.FOLDER_NAME + '/warped'+str(ind)+'.jpg', warp)
+                cv2.imwrite('../images/saved/' + FOLDER_NAME + '/masked'+str(ind)+'.jpg', mask)
+                file = open('../images/saved/' + FOLDER_NAME + '/index.txt','w')
+                file.write(str(ind))
+                file.close()
+
+            numpy_vertical = np.vstack((color2, lastReading))
+
+        cv2.imshow('frame', numpy_vertical)
+        # cv2.imshow('frame2', warp)
+        # cv2.imshow('frame3', mask)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+
+def show(frame):
+    return 0
+
+
+# returns only a list of the main 4 needed corners.. with an increment of 2, it is the corners of the inner square
+def getMarkerCorners(corners, ids):
+    newCorners = []
+    inc = 2  # increment for which corner it should pick
+    for i in range(4):
+        index = np.where(ids == i)[0][0]
+        newCorners.append((corners[index][0][(i+inc)%4][0], corners[index][0][(i+inc)%4][1]))
+    return newCorners

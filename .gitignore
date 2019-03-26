@@ -1,0 +1,4 @@
+venv/
+images/saved/
+.DS_Store/
+.idea/
