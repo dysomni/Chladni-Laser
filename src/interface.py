@@ -32,11 +32,42 @@ class Interface:
         # cv2.createTrackbar('monitor', 'parameters', 0, 1, self.monitor_action)  # not being used
         # cv2.setTrackbarPos('monitor', 'parameters', int(v.const_mon))  # not being used
 
+        cv2.createTrackbar('angle', 'parameters', 0, 90, self.angle_action)
+        cv2.setTrackbarPos('angle', 'parameters', int(v.REFLECTION_ANGLE))
+
+        cv2.createTrackbar('distance', 'parameters', 0, 200, self.distance_action)
+        cv2.setTrackbarPos('distance', 'parameters', int(v.REFLECTION_DISTANCE))
+
+        cv2.createTrackbar('frequency', 'parameters', 1, 20000, self.frequency_action)
+        cv2.setTrackbarPos('frequency', 'parameters', int(v.FREQUENCY))
+
+        cv2.createTrackbar('x', 'parameters', 0, v.x_guide-1, self.x_action)
+        cv2.setTrackbarPos('x', 'parameters', 0)
+        cv2.createTrackbar('y', 'parameters', 0, v.x_guide - 1, self.y_action)
+        cv2.setTrackbarPos('y', 'parameters', 0)
+
         # Creates the two thresholdControl children
         self.threshold1 = ThresholdControl(0, v.INSTANCE_ONE_NAME)
-        self.threshold2 = ThresholdControl(1, v.INSTANCE_TWO_NAME)
+        self.threshold2 = None
+        if v.reflection_point_tracking:
+            self.threshold2 = ThresholdControl(1, v.INSTANCE_TWO_NAME)
 
         cv2.imshow(NAME_OF_WINDOW, self.param)  # Creates the window with the blank image we generated earlier
+
+    def x_action(self, x):
+        v.zone_x = x
+
+    def y_action(self, x):
+        v.zone_y = x
+
+    def angle_action(self, x):
+        v.REFLECTION_ANGLE = str(x)
+
+    def frequency_action(self, x):
+        v.FREQUENCY = str(x)
+
+    def distance_action(self, x):
+        v.REFLECTION_DISTANCE = str(x)
 
     # NOT BEING USED: #####
     # def take_pic_action(self, x):
@@ -73,8 +104,19 @@ class ThresholdControl:
         cv2.setTrackbarPos('color low'+str(index), NAME_OF_WINDOW, v.color_low[index])
         cv2.createTrackbar('color high' + str(index), NAME_OF_WINDOW, 0, 255, self.color_high_action)
         cv2.setTrackbarPos('color high'+str(index), NAME_OF_WINDOW, v.color_high[index])
-        cv2.createTrackbar('low threshold' + str(index), NAME_OF_WINDOW, 0, 255, self.low_threshold_action)
-        cv2.setTrackbarPos('low threshold'+str(index), NAME_OF_WINDOW, v.low_threshold[index])
+
+        cv2.createTrackbar('sat low' + str(index), NAME_OF_WINDOW, 0, 255, self.sat_low_action)
+        cv2.setTrackbarPos('sat low' + str(index), NAME_OF_WINDOW, v.sat_low[index])
+        cv2.createTrackbar('sat high' + str(index), NAME_OF_WINDOW, 0, 255, self.sat_high_action)
+        cv2.setTrackbarPos('sat high' + str(index), NAME_OF_WINDOW, v.sat_high[index])
+
+        cv2.createTrackbar('val low' + str(index), NAME_OF_WINDOW, 0, 255, self.val_low_action)
+        cv2.setTrackbarPos('val low' + str(index), NAME_OF_WINDOW, v.val_low[index])
+        cv2.createTrackbar('val high' + str(index), NAME_OF_WINDOW, 0, 255, self.val_high_action)
+        cv2.setTrackbarPos('val high' + str(index), NAME_OF_WINDOW, v.val_high[index])
+
+        # cv2.createTrackbar('low threshold' + str(index), NAME_OF_WINDOW, 0, 255, self.low_threshold_action)
+        # cv2.setTrackbarPos('low threshold'+str(index), NAME_OF_WINDOW, v.low_threshold[index])
 
     # These are the methods that are called whenever a slider is moved.
     # Each method sets the new value to the variable specified.
@@ -83,6 +125,19 @@ class ThresholdControl:
 
     def color_high_action(self, x):
         v.color_high[self.index] = x
+
+    def sat_low_action(self, x):
+        v.sat_low[self.index] = x
+
+    def sat_high_action(self, x):
+        v.sat_high[self.index] = x
+
+    def val_low_action(self, x):
+        v.val_low[self.index] = x
+
+    def val_high_action(self, x):
+        v.val_high[self.index] = x
+
 
     def low_threshold_action(self, x):
         v.low_threshold[self.index] = x

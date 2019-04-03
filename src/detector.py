@@ -60,8 +60,8 @@ class Detector:
     # Takes in an image and creates a mask based on the threshold variables in the variables.py module
     def mask(self, img, threshold):
         img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        lower_color = np.array([v.color_low[v.get_number(self.name)], v.low_threshold[v.get_number(self.name)], v.low_threshold[v.get_number(self.name)]])
-        upper_color = np.array([v.color_high[v.get_number(self.name)], 255, 255])
+        lower_color = np.array([v.color_low[v.get_number(self.name)], v.sat_low[v.get_number(self.name)], v.val_low[v.get_number(self.name)]])
+        upper_color = np.array([v.color_high[v.get_number(self.name)], v.sat_high[v.get_number(self.name)], v.val_high[v.get_number(self.name)]])
         mask = cv2.inRange(img, lower_color, upper_color)
         mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
         return mask

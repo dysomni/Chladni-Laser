@@ -12,28 +12,40 @@ from cv2.aruco import getPredefinedDictionary, DICT_4X4_50
 # NAMING VARIABLES #############################
 
 # CHANGE THESE
-FOLDER_NAME = "First_Meeting"  # Folder within the 'saved' folder that all data will be stored
-EXPERIMENT_NAME = "First_Experiment"  # Name of the experiment
-FREQUENCY = "500"  # Frequency used in the experiment
-REFLECTION_DISTANCE = "4"  # distance from the dot on the plate to the wall in ft
-REFLECTION_ANGLE = "45"  # angle of incidence off of the plate in degrees
+FOLDER_NAME = "Video_Testing"  # Folder within the 'saved' folder that all data will be stored
+EXPERIMENT_NAME = "Second_Test"  # Name of the experiment
+FREQUENCY = "389"  # Frequency used in the experiment
+REFLECTION_DISTANCE = "18"  # distance from the dot on the plate to the wall in in
+REFLECTION_ANGLE = "42"  # angle of incidence off of the plate in degrees
 
 INSTANCE_ONE_NAME = "wall"  # This is the instance that will be capturing patterns on a surface
 INSTANCE_TWO_NAME = "plate"  # This is the instance that will be capturing point information from the reflecting surface
 
 # INTERFACE VARIABLES #########################
 
+# Each index is for each Imager instance respectively
 color_low = [30, 30]
 color_high = [100, 100]
+
+sat_low = [0,51]
+sat_high = [255,255]
+
+val_low = [67,183]
+val_high = [172,255]
+
 low_threshold = [50, 50]
 take_pic = False
 point_adjust = False
 const_mon = True
 
+# CHANGE THIS
+reflection_point_tracking = False  # Opens a second Imager instance with for tracking the point of reflection
+
 # DETECTION VARIABLES #########################
 
 # CHANGE THIS
-x_guide = 20  # This number squared is the number of measurements that you will have to take for each frequency.
+x_guide = 10  # This number squared is the number of measurements that you will have to take for each frequency.
+frame_amount = 30  # The amount of frames to capture
 
 one_detected = False
 two_detected = False
@@ -56,6 +68,11 @@ point2 = None
 # DICTIONARY VARIABLE ##########################
 
 markerDictionary = getPredefinedDictionary(DICT_4X4_50)
+
+not_break = True
+
+gui_display = True
+gui_displayed = [0] * (x_guide**2)
 
 
 # Returns the number of the instance based on the input of the name

@@ -42,7 +42,7 @@ class Display:
         else:  # if not, just use the original mask and scale it down to display
             mask2 = cv2.resize(mask, (250, 250), fx=0, fy=0)
 
-        self.update_variables(img, warp, mask, pmask=pmask)  # stores each image
+        # self.update_variables(img, warp, mask, pmask=pmask)  # stores each image
         self.set_detected()  # changes variables to know we detected
 
         if self.name == v.INSTANCE_TWO_NAME:  # if the image being modified is for the reflective surface, draw guides
@@ -102,12 +102,20 @@ class Display:
     # wrapper for the cv2 imshow function
     def show(self, img):
         cv2.imshow(self.name, img)
+        k = cv2.waitKey(1)
+        if k == 27:  # if the key pressed is escape
+            v.not_break = False
+        if k == ord(' '):  # if the key pressed is the space - indicates a photo is to be taken
+            v.take_pic = True
+        if k == ord('p'):  # if the key pressed is a 'p' - indicates calibration and takes a photo
+            v.take_pic = True
+            v.point_adjust = True
         return
 
     # creates a new window to show the last images that were taken by the user
     def results(self):
-        numpy_horizontal1 = np.hstack((v.warp1, v.pmask1))
-        numpy_horizontal2 = np.hstack((v.warp2, v.pmask2))
+        numpy_horizontal1 = np.hstack((v.warp1[0], v.pmask1[0]))
+        numpy_horizontal2 = np.hstack((v.warp2[0], v.pmask2[0]))
         numpy_horizontal = np.hstack((numpy_horizontal1, numpy_horizontal2))
         img = cv2.resize(numpy_horizontal, (400, 100), fx=0, fy=0)
         font = cv2.FONT_HERSHEY_SIMPLEX
