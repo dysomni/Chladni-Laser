@@ -91,9 +91,9 @@ class ThresholdControl:
 
     # Initializing the values of the sliders
     index = 0  # This is the identifier of
-    v.color_low[index] = 30
-    v.color_high[index] = 100
-    v.low_threshold[index] = 50
+    # v.color_low[index] = 30
+    # v.color_high[index] = 100
+    # v.low_threshold[index] = 50
 
     # Parameters: index-identifier  name-identifier
     def __init__(self, index, name):
