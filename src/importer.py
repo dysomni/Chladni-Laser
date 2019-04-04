@@ -54,9 +54,16 @@ def threshold_testing():
             add = cv2.line(add, (point[0], point[1] - y_avg), (point[0], point[1] + y_avg), (0, 255, 0), 2)
             add = cv2.line(add, point1, point2, (0, 0, 255), 4)
             font = cv2.FONT_HERSHEY_SIMPLEX
-            add = cv2.putText(add, 'Ax:' + str(delta_theta_x) + ' Ay:' + str(delta_theta_y), (10, 20), font, 0.5, (255, 0, 0), 1,
+            add = cv2.putText(add, 'average delta angles  - x:' + str('%.3f' % (delta_theta_x)) + ' y:' + str(
+                '%.3f' % (delta_theta_y) + ' (degrees)'), (10, 20), font, 0.5, (0, 0, 0), 1,
                               cv2.LINE_AA)
-            cv2.imshow('Total', add)
+            add = cv2.putText(add, 'average displacement - x:' + str('%.3f' % (x_avg * 2 / 125)) + ' y:' + str(
+                '%.3f' % (y_avg * 2 / 125)) + ' (inches)', (10, 40), font, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+            add = cv2.putText(add, 'average delta angles  - x:' + str('%.3f'%(delta_theta_x)) + ' y:' + str('%.3f'%(delta_theta_y) + ' (degrees)'), (10, 20), font, 0.5, (255, 0, 0), 1,
+                              cv2.LINE_AA)
+            add = cv2.putText(add, 'average displacement - x:' + str('%.3f' % (x_avg*2/125)) + ' y:' + str(
+                '%.3f' % (y_avg*2/125)) + ' (inches)', (10, 40), font, 0.5, (255, 0, 0), 1,cv2.LINE_AA)
+            cv2.imshow('Result', add)
 
             k = cv2.waitKey(50)
             if k is ord(' '):
@@ -92,71 +99,6 @@ def find_mask_point(img):
     point = (point[1],point[0])
     return point
 
-# def find_x_avg(img, center):
-#     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-#     avg = 0
-#     l_points = []
-#     r_points = []
-#     for i in range(500):  # relies on the image being 500x500 px
-#         for j in range(center[0]):
-#             if img[i][j] > 200:
-#                 l_points.append((i,j))
-#                 # img[i][j] = 0
-#     for i in range(500):  # relies on the image being 500x500 px
-#         for j in range(500-center[0]):
-#             if img[i][499-j] > 200:
-#                 r_points.append((i,499-j))
-#                 # img[i][499-j] = 0
-#
-#     # cv2.imshow('test', img)
-#     # k = cv2.waitKey(50)
-#
-#     if len(l_points) == 0:
-#         return None
-#     if len(r_points) == 0:
-#         return None
-#     l_points = np.array(l_points)
-#     r_points = np.array(r_points)
-#     l_x = (np.mean(l_points, axis=0, dtype=int))[1]
-#     r_x = (np.mean(r_points, axis=0, dtype=int))[1]
-#     l_x_d = abs(center[0]-l_x)
-#     r_x_d = abs(center[0]-r_x)
-#     # point = (point[1],point[0])
-#     avg = int((l_x_d + r_x_d) / 2)
-#     return avg
-
-
-# def find_y_avg(img, center):
-#     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-#     t_points = []
-#     b_points = []
-#     for i in range(center[0]):  # relies on the image being 500x500 px
-#         for j in range(500):
-#             if img[i][j] > 200:
-#                 t_points.append((i,j))
-#                 img[i][j] = 0
-#     for i in range(500-center[0]):  # relies on the image being 500x500 px
-#         for j in range(500):
-#             if img[499-i][j] > 200:
-#                 b_points.append((499-i,j))
-#                 # img[i][499-j] = 0
-#
-#     cv2.imshow('test', img)
-#     k = cv2.waitKey(50)
-#
-#     if len(t_points) == 0:
-#         return None
-#     if len(b_points) == 0:
-#         return None
-#     t_points = np.array(t_points)
-#     b_points = np.array(b_points)
-#     l_y = (np.mean(t_points, axis=0, dtype=int))[0]
-#     r_y = (np.mean(b_points, axis=0, dtype=int))[0]
-#     l_y_d = abs(center[0]-l_y)
-#     r_y_d = abs(center[0]-r_y)
-#     # point = (point[1],point[0])
-#     avg = int((l_y_d + r_y_d) / 2)
-#     return avg
 
 def find_farthest_points(img, center):
     d = 20
