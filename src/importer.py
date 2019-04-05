@@ -5,7 +5,17 @@ import src.interface as interface
 import itertools as itr
 import statistics as stat
 import math
+import csv
+import os
+import copy
 
+
+class Imported:
+
+    def __init__(self, img, x, y):
+        self.img = img
+        self.x = x
+        self.y = y
 
 def threshold_testing():
 
@@ -15,9 +25,14 @@ def threshold_testing():
     parameters = cv2.namedWindow(interface.NAME_OF_WINDOW)
     param_controls = interface.ThresholdControl(0, "Threshold Testing")
     cont = True
-    ind = 1
+    ind = 72
+
+    # issues with 143
 
     while cont:
+        if ind == 143: # since it is blank essentially
+            ind += 1
+
         filename_head = '../images/saved/' + v.FOLDER_NAME + '/' + v.EXPERIMENT_NAME + '_' + str(ind)
         playback = cv2.VideoCapture(filename_head + '_warp_1.avi')
         if not playback.isOpened():
@@ -61,7 +76,7 @@ def threshold_testing():
                 '%.3f' % (y_avg * 2 / 125)) + ' (inches)', (10, 40), font, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
             add = cv2.putText(add, 'average delta angles  - x:' + str('%.3f'%(delta_theta_x)) + ' y:' + str('%.3f'%(delta_theta_y) + ' (degrees)'), (10, 20), font, 0.5, (255, 0, 0), 1,
                               cv2.LINE_AA)
-            add = cv2.putText(add, 'average displacement - x:' + str('%.3f' % (x_avg*2/125)) + ' y:' + str(
+            add = cv2.putText(add, 'average displacement - x:' + str('%.3f' % (x_avg * 2 / 125)) + ' y:' + str(
                 '%.3f' % (y_avg*2/125)) + ' (inches)', (10, 40), font, 0.5, (255, 0, 0), 1,cv2.LINE_AA)
             cv2.imshow('Result', add)
 
@@ -72,7 +87,93 @@ def threshold_testing():
                 cont = False
 
         playback.release()
+        print(ind)
         ind += 1
+
+
+def read_csv(frequency):
+
+    with open('../images/saved/video/Second Experiment_logs.csv', 'rt') as f:
+        reader = csv.reader(f)
+        log = list(reader)
+
+    for i in range(len(log[0])):
+        print(str(i) + ' ' + log[0][i] + "  ", end='')
+    print()
+
+    imported_images = [[None for _ in range(6)] for _ in range(6)]
+    for x in range(6):
+        for y in range(6):
+            images_loop = []
+            masks_loop = []
+            ret = True
+            playback = cv2.VideoCapture(find_last_filename(log, x, y, frequency))
+            while ret:
+                ret, frame = playback.read()
+                if ret:
+                    images_loop.append(frame)
+
+            for frame in images_loop:
+                mask = get_mask(frame)
+                masks_loop.append(mask)
+
+            add = masks_loop[0]
+            for frame in masks_loop:
+                add += frame
+
+            point = find_mask_point(add)
+            x_avg, y_avg, point1, point2, delta_theta_x, delta_theta_y = find_farthest_points(add, point)
+
+            # for frame in masks_loop:
+            #     frame = cv2.circle(frame, point, 10, (0, 255, 0), 5)
+            #     frame = cv2.line(frame, (point[0] - x_avg, point[1]), (point[0] + x_avg, point[1]), (0, 255, 0), 2)
+            #     frame = cv2.line(frame, (point[0], point[1] - y_avg), (point[0], point[1] + y_avg), (0, 255, 0), 2)
+            #     frame = cv2.line(frame, point1, point2, (0, 0, 255), 4)
+
+            color = np.zeros((100, 100, 3), np.uint8)
+            for ii in range(100):
+                for i in range(100):
+                    color[ii][i][0] = delta_theta_y * 60
+                    color[ii][i][2] = delta_theta_x * 60
+
+            color_send = [color]
+
+            # for i in range(len(masks_loop)):
+            #     masks_loop[i] = cv2.resize(masks_loop[i], (100, 100), fx=0, fy=0)
+
+            # imported_images[x][y] = masks_loop
+            imported_images[x][y] = color_send
+
+    final_frames = []
+    for iii in range(len(imported_images[0][0])):
+        concatenated = []
+        for ii in range(6):
+            horizontal = imported_images[ii][0][iii]
+            for i in range(1,6):
+                horizontal = np.hstack((horizontal, imported_images[ii][i][iii]))
+            concatenated.append(horizontal)
+        total = concatenated[0]
+        for i in range(1,6):
+            total = np.vstack((total,concatenated[i]))
+        final_frames.append(total)
+    print("done")
+    for frame in itr.cycle(final_frames):
+        cv2.imshow("test",frame)
+        cv2.waitKey(10)
+
+
+def find_last_filename(log, x, y, freq):
+    amount = 0
+    if os.path.isfile('../images/saved/' + log[1][11] + '/' + log[1][12] + '_index.txt'):
+        file = open('../images/saved/' + log[1][11] + '/' + log[1][12] + '_index.txt', 'r')
+        amount = int(file.read())
+        file.close()
+    # print(amount)
+    filename = ""
+    for i in range(1, (amount+1)):
+        if int(log[i][2]) == x and int(log[i][3]) == y and log[i][8] == freq:
+            filename = '../images/saved/' + log[i][11] + '/' + log[i][12] + '_' + log[i][0] + '_warp_1.avi'
+    return filename
 
 
 def get_mask(img):
@@ -110,19 +211,19 @@ def find_farthest_points(img, center):
     b_points = []
     l_points = []
     r_points = []
-    for i in range(center[0]):  # relies on the image being 500x500 px
+    for i in range(center[1]):  # relies on the image being 500x500 px
         for j in range(500):
             if img[i][j] > 200:
                 t_points.append((i, j))
-                img[i][j] = 0
-    for i in range(500 - center[0]):  # relies on the image being 500x500 px
+                # img[i][j] = 0
+    for i in range(500 - center[1]):  # relies on the image being 500x500 px
         for j in range(500):
             if img[499 - i][j] > 200:
                 b_points.append((499 - i, j))
                 # img[i][499-j] = 0
     for i in range(500):  # relies on the image being 500x500 px
         for j in range(center[0]):
-            if img[i][j] > 200:
+            if img[i][j] > 150:
                 l_points.append((i,j))
                 # img[i][j] = 0
     for i in range(500):  # relies on the image being 500x500 px
@@ -174,18 +275,18 @@ def find_farthest_points(img, center):
     point2 = (
         int(((-dif * math.sin(math.atan(m))) / m) + center[0]), int(m * (-dif * math.cos(math.atan(m))) + center[1]))
 
-    # point1 = (stat.mean([tpoint[1],lpoint[1]]),stat.mean([tpoint[0],lpoint[0]]))
-    # point2 = (stat.mean([bpoint[1], rpoint[1]]), stat.mean([bpoint[0], rpoint[0]]))
-
     delta_theta_x = math.degrees(math.atan((x_avg/125)/d))
     delta_theta_y = math.degrees(math.atan(((math.tan(math.radians(theta))/d)+(y_avg/125))/d))
 
     return x_avg, y_avg, point1, point2, delta_theta_x, delta_theta_y
 
+
 def slope(x1, y1, x2, y2):
+    if (x2-x1) == 0: return 100000
     m = (y2-y1)/(x2-x1)
     return m
 
+
 if __name__ == '__main__':
-    threshold_testing()
-    print("Hello")
+    # threshold_testing()
+    read_csv("85")

@@ -1,5 +1,72 @@
 # This is just spare code that I didn't want to delete but wanted to remove so I could clean up my files.
 
+def find_x_avg(img, center):
+#     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+#     avg = 0
+#     l_points = []
+#     r_points = []
+#     for i in range(500):  # relies on the image being 500x500 px
+#         for j in range(center[0]):
+#             if img[i][j] > 200:
+#                 l_points.append((i,j))
+#                 # img[i][j] = 0
+#     for i in range(500):  # relies on the image being 500x500 px
+#         for j in range(500-center[0]):
+#             if img[i][499-j] > 200:
+#                 r_points.append((i,499-j))
+#                 # img[i][499-j] = 0
+#
+#     # cv2.imshow('test', img)
+#     # k = cv2.waitKey(50)
+#
+#     if len(l_points) == 0:
+#         return None
+#     if len(r_points) == 0:
+#         return None
+#     l_points = np.array(l_points)
+#     r_points = np.array(r_points)
+#     l_x = (np.mean(l_points, axis=0, dtype=int))[1]
+#     r_x = (np.mean(r_points, axis=0, dtype=int))[1]
+#     l_x_d = abs(center[0]-l_x)
+#     r_x_d = abs(center[0]-r_x)
+#     # point = (point[1],point[0])
+#     avg = int((l_x_d + r_x_d) / 2)
+#     return avg
+
+
+# def find_y_avg(img, center):
+#     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+#     t_points = []
+#     b_points = []
+#     for i in range(center[0]):  # relies on the image being 500x500 px
+#         for j in range(500):
+#             if img[i][j] > 200:
+#                 t_points.append((i,j))
+#                 img[i][j] = 0
+#     for i in range(500-center[0]):  # relies on the image being 500x500 px
+#         for j in range(500):
+#             if img[499-i][j] > 200:
+#                 b_points.append((499-i,j))
+#                 # img[i][499-j] = 0
+#
+#     cv2.imshow('test', img)
+#     k = cv2.waitKey(50)
+#
+#     if len(t_points) == 0:
+#         return None
+#     if len(b_points) == 0:
+#         return None
+#     t_points = np.array(t_points)
+#     b_points = np.array(b_points)
+#     l_y = (np.mean(t_points, axis=0, dtype=int))[0]
+#     r_y = (np.mean(b_points, axis=0, dtype=int))[0]
+#     l_y_d = abs(center[0]-l_y)
+#     r_y_d = abs(center[0]-r_y)
+#     # point = (point[1],point[0])
+#     avg = int((l_y_d + r_y_d) / 2)
+#     return avg
+
+
 
 def test():
     p = pyaudio.PyAudio()

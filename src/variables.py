@@ -14,9 +14,9 @@ from cv2.aruco import getPredefinedDictionary, DICT_4X4_50
 # CHANGE THESE
 FOLDER_NAME = "Video"  # Folder within the 'saved' folder that all data will be stored
 EXPERIMENT_NAME = "Second Experiment"  # Name of the experiment
-FREQUENCY = "85"  # Frequency used in the experiment
+FREQUENCY = "98"  # Frequency used in the experiment
 REFLECTION_DISTANCE = "20"  # distance from the dot on the plate to the wall in in
-REFLECTION_ANGLE = "32"  # angle of incidence off of the plate in degrees
+REFLECTION_ANGLE = "34"  # angle of incidence off of the plate in degrees
 
 INSTANCE_ONE_NAME = "wall"  # This is the instance that will be capturing patterns on a surface
 INSTANCE_TWO_NAME = "plate"  # This is the instance that will be capturing point information from the reflecting surface
