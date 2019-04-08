@@ -22,16 +22,27 @@ def threshold_testing():
     # v.FOLDER_NAME = ""
     # v.EXPERIMENT_NAME = ""
 
+    with open('../images/saved/video/Second Experiment_logs.csv', 'rt') as f:
+        reader = csv.reader(f)
+        log = list(reader)
+
+    for i in range(len(log[0])):
+        print(str(i) + ' ' + log[0][i] + "  ", end='')
+    print()
+
     parameters = cv2.namedWindow(interface.NAME_OF_WINDOW)
     param_controls = interface.ThresholdControl(0, "Threshold Testing")
     cont = True
-    ind = 72
+    ind = 4
 
     # issues with 143
 
     while cont:
         if ind == 143: # since it is blank essentially
             ind += 1
+
+        angle = int(log[ind][9])
+        distance = int(log[ind][10])
 
         filename_head = '../images/saved/' + v.FOLDER_NAME + '/' + v.EXPERIMENT_NAME + '_' + str(ind)
         playback = cv2.VideoCapture(filename_head + '_warp_1.avi')
@@ -54,7 +65,7 @@ def threshold_testing():
         point = find_mask_point(add)
         # x_avg = find_x_avg(add, point)
         # y_avg = find_y_avg(add, point)
-        x_avg, y_avg, point1, point2, delta_theta_x, delta_theta_y = find_farthest_points(add, point)
+        x_avg, y_avg, point1, point2, delta_theta_x, delta_theta_y = find_farthest_points(add, point, angle, distance)
 
         draw_point = False
         for frame in itr.cycle(images_loop):
@@ -122,19 +133,58 @@ def read_csv(frequency):
                 add += frame
 
             point = find_mask_point(add)
-            x_avg, y_avg, point1, point2, delta_theta_x, delta_theta_y = find_farthest_points(add, point)
+            angle, distance = find_angle_and_distance(log, frequency)
+            x_avg, y_avg, point1, point2, delta_theta_x, delta_theta_y = find_farthest_points(add, point, angle, distance)
 
+            # this draws the circle and line on each frame
             # for frame in masks_loop:
             #     frame = cv2.circle(frame, point, 10, (0, 255, 0), 5)
             #     frame = cv2.line(frame, (point[0] - x_avg, point[1]), (point[0] + x_avg, point[1]), (0, 255, 0), 2)
             #     frame = cv2.line(frame, (point[0], point[1] - y_avg), (point[0], point[1] + y_avg), (0, 255, 0), 2)
             #     frame = cv2.line(frame, point1, point2, (0, 0, 255), 4)
 
+            # this adds the circle and line to just the composite mask
+            # add = cv2.circle(add, point, 10, (0, 255, 0), 5)
+            # add = cv2.line(add, (point[0] - x_avg, point[1]), (point[0] + x_avg, point[1]), (0, 255, 0), 2)
+            # add = cv2.line(add, (point[0], point[1] - y_avg), (point[0], point[1] + y_avg), (0, 255, 0), 2)
+            # add = cv2.line(add, point1, point2, (0, 0, 255), 4)
+            # add = cv2.resize(add, (100, 100), fx=0, fy=0)
+
+            # this creates the color representation of the images
             color = np.zeros((100, 100, 3), np.uint8)
             for ii in range(100):
                 for i in range(100):
                     color[ii][i][0] = delta_theta_y * 60
                     color[ii][i][2] = delta_theta_x * 60
+            offset_x = int((100 - delta_theta_x * 25)/2)
+            offset_y = int((100 - delta_theta_y * 25)/2)
+            color = cv2.rectangle(color, (offset_x, offset_y), (100-offset_x, 100-offset_y), (255, 255, 255), 1)
+            # font = cv2.FONT_HERSHEY_SIMPLEX
+            # color = cv2.putText(color, str('%.2f' % (delta_theta_x)), (40, 10), font, 0.3, (0, 255, 0), 1,
+            #                   cv2.LINE_AA)
+            # color = cv2.putText(color, str('%.2f' % (delta_theta_y)), (5, 50), font, 0.3, (0, 255, 0), 1,
+            #                     cv2.LINE_AA)
+
+            vert = np.zeros((1, 102, 3), np.uint8)
+            # for ii in range(1):
+            #     for i in range(102):
+            #         vert[ii][i][0] = 255
+            #         vert[ii][i][1] = 255
+            #         vert[ii][i][2] = 255
+            hort = np.zeros((100, 1, 3), np.uint8)
+            # for ii in range(100):
+            #     for i in range(1):
+            #         hort[ii][i][0] = 255
+            #         hort[ii][i][1] = 255
+            #         hort[ii][i][2] = 255
+
+            # color = np.hstack((color, hort))
+            # color = np.hstack((hort, color))
+            # color = np.vstack((color, vert))
+            # color = np.vstack((vert, color))
+
+            cv2.imshow("idk", color)
+            cv2.waitKey(1)
 
             color_send = [color]
 
@@ -142,6 +192,7 @@ def read_csv(frequency):
             #     masks_loop[i] = cv2.resize(masks_loop[i], (100, 100), fx=0, fy=0)
 
             # imported_images[x][y] = masks_loop
+            # imported_images[x][y] = [add]
             imported_images[x][y] = color_send
 
     final_frames = []
@@ -158,7 +209,7 @@ def read_csv(frequency):
         final_frames.append(total)
     print("done")
     for frame in itr.cycle(final_frames):
-        cv2.imshow("test",frame)
+        cv2.imshow(frequency,frame)
         cv2.waitKey(10)
 
 
@@ -174,6 +225,19 @@ def find_last_filename(log, x, y, freq):
         if int(log[i][2]) == x and int(log[i][3]) == y and log[i][8] == freq:
             filename = '../images/saved/' + log[i][11] + '/' + log[i][12] + '_' + log[i][0] + '_warp_1.avi'
     return filename
+
+
+def find_angle_and_distance(log, freq):
+    amount = 0
+    if os.path.isfile('../images/saved/' + log[1][11] + '/' + log[1][12] + '_index.txt'):
+        file = open('../images/saved/' + log[1][11] + '/' + log[1][12] + '_index.txt', 'r')
+        amount = int(file.read())
+        file.close()
+    # print(amount)
+    for i in range(1, (amount + 1)):
+        if log[i][8] == freq:
+            return int(log[i][9]), int(log[i][10])
+    return -1, -1
 
 
 def get_mask(img):
@@ -201,9 +265,9 @@ def find_mask_point(img):
     return point
 
 
-def find_farthest_points(img, center):
-    d = 20
-    theta = 32
+def find_farthest_points(img, center, angle, distance):
+    d = distance
+    theta = angle
     point1 = None
     point2 = None
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -288,5 +352,5 @@ def slope(x1, y1, x2, y2):
 
 
 if __name__ == '__main__':
-    # threshold_testing()
-    read_csv("85")
+    threshold_testing()
+    # read_csv("63")
